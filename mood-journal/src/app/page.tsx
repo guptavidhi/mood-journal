@@ -1,35 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Sun, Moon, LogIn } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { Sun, Moon } from "lucide-react";
 
 export default function Home() {
-  const [dark, setDark] = useState<boolean | null>(null);
+  const [dark, setDark] = useState(false);
 
-  // Load saved preference on mount
+  // Load saved theme on mount
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const saved = localStorage.getItem("mj_theme");
     if (saved === "dark") {
-      setDark(true);
       document.documentElement.classList.add("dark");
-    } else if (saved === "light") {
-      setDark(false);
-      document.documentElement.classList.remove("dark");
+      setDark(true);
     } else {
-      // Fallback to system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setDark(prefersDark);
-      if (prefersDark) {
-        document.documentElement.classList.add("dark");
-      }
+      document.documentElement.classList.remove("dark");
+      setDark(false);
     }
   }, []);
 
-  // Toggle handler
-  const toggleDark = () => {
+  // Toggle theme
+  const toggleTheme = () => {
     if (dark) {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("mj_theme", "light");
@@ -42,24 +34,27 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      {/* Top-right corner controls */}
-      <div className="absolute top-4 right-4 flex gap-2">
-        <Button variant="outline" size="icon" onClick={toggleDark}>
-          {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
-        <Button variant="outline" size="sm">
-          <LogIn className="mr-2 h-4 w-4" /> Login
-        </Button>
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      {/* top-right controls */}
+      <div className="absolute top-4 right-4 flex items-center gap-4">
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition"
+        >
+          {dark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+        <button className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
+          Login
+        </button>
       </div>
 
-      {/* Page content */}
-      <div className="flex flex-col items-center justify-center h-screen">
+      {/* main content */}
+      <main className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-4xl font-bold mb-4">Mood Journal</h1>
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Track your thoughts and feelings with ease.
+          Track your moods, reflect, and grow ✨
         </p>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
