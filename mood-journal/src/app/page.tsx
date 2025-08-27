@@ -1,78 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Sun, Moon } from "lucide-react"; // npm i lucide-react
+import { useState, useEffect } from "react";
+import { Sun, Moon, LogIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  // `null` until we know the user's preference (avoids SSR/client mismatch)
   const [dark, setDark] = useState<boolean | null>(null);
 
-  // read saved preference (or system preference) on mount
+  // Load saved preference on mount
   useEffect(() => {
-    const saved = typeof window !== "undefined" && localStorage.getItem("mj_theme");
+    if (typeof window === "undefined") return;
+
+    const saved = localStorage.getItem("mj_theme");
     if (saved === "dark") {
       setDark(true);
-      return;
-    }
-    if (saved === "light") {
+      document.documentElement.classList.add("dark");
+    } else if (saved === "light") {
       setDark(false);
-      return;
+      document.documentElement.classList.remove("dark");
+    } else {
+      // Fallback to system preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setDark(prefersDark);
+      if (prefersDark) {
+        document.documentElement.classList.add("dark");
+      }
     }
-    // fallback to system preference
-    const prefersDark =
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setDark(prefersDark);
   }, []);
 
-  // apply/remove `dark` on <html> and persist choice
-  useEffect(() => {
-    if (dark === null) return;
+  // Toggle handler
+  const toggleDark = () => {
     if (dark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("mj_theme", "dark");
-    } else {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("mj_theme", "light");
+      setDark(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("mj_theme", "dark");
+      setDark(true);
     }
-  }, [dark]);
-
-  // while we don't know theme yet, render neutral shell (prevents flicker / mismatch)
-  if (dark === null) {
-    return <div className="min-h-screen bg-gray-100 dark:bg-gray-900" />;
-  }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 transition-colors">
-      {/* top-right: icon toggle + login */}
-      <div className="absolute top-4 right-4 flex items-center gap-3">
-        {/* Dark mode icon button */}
-        <button
-          aria-label="Toggle dark mode"
-          onClick={() => setDark(!dark)}
-          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-        >
-          {dark ? (
-            <Sun className="w-5 h-5 text-yellow-400" />
-          ) : (
-            <Moon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
-          )}
-        </button>
-
-        {/* Login placeholder */}
-        <button className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm">
-          Login
-        </button>
+    <main className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      {/* Top-right corner controls */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Button variant="outline" size="icon" onClick={toggleDark}>
+          {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
+        <Button variant="outline" size="sm">
+          <LogIn className="mr-2 h-4 w-4" /> Login
+        </Button>
       </div>
 
-      {/* Main content */}
-      <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-        Welcome to Mood Journal
-      </h1>
-      <p className="mt-2 text-gray-700 dark:text-gray-300">
-        Your safe space to track how you feel.
-      </p>
-    </div>
+      {/* Page content */}
+      <div className="flex flex-col items-center justify-center h-screen">
+        <h1 className="text-4xl font-bold mb-4">Mood Journal</h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300">
+          Track your thoughts and feelings with ease.
+        </p>
+      </div>
+    </main>
   );
 }
