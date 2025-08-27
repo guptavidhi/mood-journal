@@ -1,19 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sun, Moon } from "lucide-react"; // icon library
+import { Sun, Moon } from "lucide-react"; // npm i lucide-react
 
 export default function Home() {
-  const [dark, setDark] = useState(false);
+  // `null` until we know the user's preference (avoids SSR/client mismatch)
+  const [dark, setDark] = useState<boolean | null>(null);
 
-  // Load saved theme on mount
+  // read saved preference (or system preference) on mount
   useEffect(() => {
-    const theme = localStorage.getItem("mj_theme");
-    if (theme === "dark") setDark(true);
+    const saved = typeof window !== "undefined" && localStorage.getItem("mj_theme");
+    if (saved === "dark") {
+      setDark(true);
+      return;
+    }
+    if (saved === "light") {
+      setDark(false);
+      return;
+    }
+    // fallback to system preference
+    const prefersDark =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setDark(prefersDark);
   }, []);
 
-  // Apply theme class to <html>
+  // apply/remove `dark` on <html> and persist choice
   useEffect(() => {
+    if (dark === null) return;
     if (dark) {
       document.documentElement.classList.add("dark");
       localStorage.setItem("mj_theme", "dark");
@@ -23,32 +38,41 @@ export default function Home() {
     }
   }, [dark]);
 
+  // while we don't know theme yet, render neutral shell (prevents flicker / mismatch)
+  if (dark === null) {
+    return <div className="min-h-screen bg-gray-100 dark:bg-gray-900" />;
+  }
+
   return (
-    <main className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
-        <h1 className="text-2xl font-bold">Mood Journal</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 transition-colors">
+      {/* top-right: icon toggle + login */}
+      <div className="absolute top-4 right-4 flex items-center gap-3">
+        {/* Dark mode icon button */}
+        <button
+          aria-label="Toggle dark mode"
+          onClick={() => setDark(!dark)}
+          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+        >
+          {dark ? (
+            <Sun className="w-5 h-5 text-yellow-400" />
+          ) : (
+            <Moon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+          )}
+        </button>
 
-        <div className="flex items-center gap-3">
-          {/* Dark mode toggle */}
-          <button
-            onClick={() => setDark(!dark)}
-            className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
-          >
-            {dark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-
-          {/* Login placeholder */}
-          <button className="rounded-xl px-3 py-1.5 text-sm ring-1 ring-neutral-300 dark:ring-neutral-700">
-            Login
-          </button>
-        </div>
+        {/* Login placeholder */}
+        <button className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm">
+          Login
+        </button>
       </div>
 
-      {/* Page content */}
-      <section className="flex flex-col items-center justify-center h-[80vh]">
-        <p className="text-lg">Dark mode + Login placeholder ready ✅</p>
-      </section>
-    </main>
+      {/* Main content */}
+      <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+        Welcome to Mood Journal
+      </h1>
+      <p className="mt-2 text-gray-700 dark:text-gray-300">
+        Your safe space to track how you feel.
+      </p>
+    </div>
   );
 }
