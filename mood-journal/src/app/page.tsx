@@ -80,6 +80,33 @@ export default function Home() {
       {/* Content */}
       <h1 className="text-4xl font-bold">Mood Journal</h1>
       <p className="mt-4 text-lg opacity-80">Track your moods, journal your thoughts ✨</p>
+      
+      
+{/* Journal entry box */}
+{/* <div className="mt-8 w-full max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6"> */}
+  {/* <h2 className="text-2xl font-semibold mb-4">New Journal Entry</h2> */}
+  {/* <textarea
+    placeholder="Write your thoughts here..."
+    className="mt-8 w-full max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6"
+  /> */}
+  <textarea
+  placeholder="Write your thoughts here..."
+  onInput={(e) => {
+    const target = e.target as HTMLTextAreaElement;
+    target.style.height = "auto"; // reset height
+    target.style.height = target.scrollHeight + "px"; // set new height
+  }}
+  className="mt-8 w-full max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 resize-none overflow-hidden"
+  rows={1}
+/>
+
+  <button
+    className="mt-4 px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition"
+  >
+    Save Entry
+  </button>
+{/* </div> */}
+
     </main>
   );
 }
