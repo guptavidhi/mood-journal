@@ -1,78 +1,112 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { Sun, Moon, Menu, X } from "lucide-react";
 
 export default function Home() {
-  const [data, setData] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [newEntry, setNewEntry] = useState<string>("");
-
-  // Fetch existing data
-  const fetchData = async () => {
-    const { data, error } = await supabase.from("test_table").select("*");
-    if (error) {
-      setError(error.message);
-      console.error(error);
-    } else {
-      setData(data || []);
-    }
-  };
+  const [dark, setDark] = useState<boolean | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    const saved = localStorage.getItem("mj_theme");
+    if (saved) {
+      setDark(saved === "dark");
+      document.documentElement.classList.toggle("dark", saved === "dark");
+    } else {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setDark(prefersDark);
+      document.documentElement.classList.toggle("dark", prefersDark);
+    }
   }, []);
 
-  // Insert a new row
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newEntry.trim()) return;
-
-    const { error } = await supabase.from("test_table").insert([{ text: newEntry }]);
-    if (error) {
-      setError(error.message);
-    } else {
-      setNewEntry("");
-      fetchData(); // refresh table
-    }
+  const toggleTheme = () => {
+    if (dark === null) return;
+    const newDark = !dark;
+    setDark(newDark);
+    localStorage.setItem("mj_theme", newDark ? "dark" : "light");
+    document.documentElement.classList.toggle("dark", newDark);
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
-      <h1 className="text-2xl font-bold mb-6">Mood Journal 📝</h1>
-
-      {/* Entry Form */}
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
-        <input
-          type="text"
-          value={newEntry}
-          onChange={(e) => setNewEntry(e.target.value)}
-          placeholder="Write your mood..."
-          className="p-2 border rounded w-64"
-        />
+    <main className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white flex flex-col items-center justify-center transition-colors duration-500">
+      {/* top bar */}
+      <div className="absolute top-4 left-4 flex items-center gap-4">
+        {/* Hamburger button */}
         <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition"
         >
-          Add
+          <Menu size={24} />
         </button>
-      </form>
+      </div>
 
-      {/* Errors */}
-      {error && <p className="text-red-500 mb-4">Error: {error}</p>}
+      <div className="absolute top-4 right-4 flex items-center gap-4">
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition"
+        >
+          {dark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+        <button className="px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition">
+          Login
+        </button>
+      </div>
 
-      {/* Data List */}
-      {data.length > 0 ? (
-        <ul className="bg-white p-4 rounded shadow w-1/2">
-          {data.map((row, i) => (
-            <li key={i} className="border-b py-2">
-              {row.text}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-600">No entries yet…</p>
-      )}
+      {/* Sidebar */}
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 z-50
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        {/* Close button */}
+        <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
+          <h2 className="text-xl font-bold">Menu</h2>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Sidebar links */}
+        <nav className="flex flex-col p-4 space-y-3">
+          <a href="#" className="hover:text-blue-500">Home</a>
+          <a href="#" className="hover:text-blue-500">Journal</a>
+          <a href="#" className="hover:text-blue-500">Mood Trends</a>
+          <a href="#" className="hover:text-blue-500">Song History</a>
+        </nav>
+      </div>
+
+      {/* Content */}
+      <h1 className="text-4xl font-bold">Mood Journal</h1>
+      <p className="mt-4 text-lg opacity-80">Track your moods, journal your thoughts ✨</p>
+      
+      
+{/* Journal entry box */}
+{/* <div className="mt-8 w-full max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6"> */}
+  {/* <h2 className="text-2xl font-semibold mb-4">New Journal Entry</h2> */}
+  {/* <textarea
+    placeholder="Write your thoughts here..."
+    className="mt-8 w-full max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6"
+  /> */}
+  <textarea
+  placeholder="Write your thoughts here..."
+  onInput={(e) => {
+    const target = e.target as HTMLTextAreaElement;
+    target.style.height = "auto"; // reset height
+    target.style.height = target.scrollHeight + "px"; // set new height
+  }}
+  className="mt-8 w-full max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 resize-none overflow-hidden"
+  rows={5}
+/>
+
+  <button
+    className="mt-4 px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition"
+  >
+    Save Entry
+  </button>
+{/* </div> */}
+
     </main>
   );
 }
