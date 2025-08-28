@@ -97,7 +97,7 @@ export default function Home() {
     target.style.height = target.scrollHeight + "px"; // set new height
   }}
   className="mt-8 w-full max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 resize-none overflow-hidden"
-  rows={1}
+  rows={5}
 />
 
   <button
