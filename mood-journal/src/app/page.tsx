@@ -72,6 +72,7 @@ export default function Home() {
         <nav className="flex flex-col p-4 space-y-3">
           <a href="#" className="hover:text-blue-500">Home</a>
           <a href="#" className="hover:text-blue-500">Journal</a>
+          <a href="#" className="hover:text-blue-500">To-do List</a>
           <a href="#" className="hover:text-blue-500">Mood Trends</a>
           <a href="#" className="hover:text-blue-500">Song History</a>
         </nav>
